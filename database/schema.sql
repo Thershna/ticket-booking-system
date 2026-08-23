@@ -63,7 +63,14 @@ CREATE TABLE users (
 
     password_hash TEXT NOT NULL,
 
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+
+    verification_token TEXT UNIQUE,
+
+    verification_expires_at TIMESTAMPTZ,
+
     role user_role NOT NULL DEFAULT 'CUSTOMER',
+
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
