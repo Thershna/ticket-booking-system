@@ -361,32 +361,40 @@ function OrganiserDashboard() {
                                             </div>
 
                                         </div>
-                                        {event.status === "DRAFT" && (
-                                             <div className="event-card-actions">
+                                        <div className="event-card-actions">
 
-                                                  {Number(event.total_seats) > 0 && (
-                                                      <button
-                                                          className="create-event-button"
-                                                          onClick={async () => {
-                                                             try {
-                                                                 await openEvent(event.id);
+    <button
+        className="create-event-button"
+        onClick={() =>
+            navigate(`/organiser/events/${event.id}/seats`)
+        }
+    >
+        Manage Seats
+    </button>
 
-                                                                 await loadEvents();
+    {event.status === "DRAFT" &&
+        Number(event.total_seats) > 0 && (
+            <button
+                className="create-event-button"
+                onClick={async () => {
+                    try {
+                        await openEvent(event.id);
 
-                                                             } catch (error) {
-                                                                setError(
-                                                                    error.message ||
-                                                                    "Unable to open event."
-                                                                );
-                                                             }
-                                                          }}
-                                                       >
-                                                          Open for booking
-                                                       </button>
-                                                 )}
+                        window.location.reload();
 
-                                           </div>
-                                    )}
+                    } catch (error) {
+                        setError(
+                            error.message ||
+                            "Unable to open event."
+                        );
+                    }
+                }}
+            >
+                Open for booking
+            </button>
+        )}
+
+</div>
 
                                     </article>
 
