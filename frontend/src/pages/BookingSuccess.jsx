@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
 
 function BookingSuccess() {
     const navigate = useNavigate();
@@ -14,9 +15,7 @@ function BookingSuccess() {
 
                     <button
                         className="primary-button"
-                        onClick={() =>
-                            navigate("/events")
-                        }
+                        onClick={() => navigate("/events")}
                     >
                         Browse events
                     </button>
@@ -24,6 +23,19 @@ function BookingSuccess() {
             </div>
         );
     }
+
+    const downloadQRCode = () => {
+        const canvas = document.getElementById("booking-qr");
+
+        if (!canvas) return;
+
+        const link = document.createElement("a");
+
+        link.download = `${booking.bookingReference}-ticket.png`;
+        link.href = canvas.toDataURL("image/png");
+
+        link.click();
+    };
 
     return (
         <div className="booking-success-page">
@@ -43,8 +55,7 @@ function BookingSuccess() {
                 </h1>
 
                 <p className="success-text">
-                    Your tickets have been booked
-                    successfully.
+                    Your tickets have been booked successfully.
                 </p>
 
                 <div className="booking-reference">
@@ -55,6 +66,58 @@ function BookingSuccess() {
                     <strong>
                         {booking.bookingReference}
                     </strong>
+                </div>
+
+                {/* QR TICKET */}
+                <div
+                    style={{
+                        margin: "25px auto",
+                        padding: "20px",
+                        background: "#ffffff",
+                        borderRadius: "12px",
+                        textAlign: "center",
+                        width: "fit-content",
+                        boxShadow: "0 4px 15px rgba(0,0,0,0.08)"
+                    }}
+                >
+
+                    <p
+                        style={{
+                            fontWeight: "600",
+                            marginBottom: "15px"
+                        }}
+                    >
+                        YOUR QR TICKET
+                    </p>
+
+                    <QRCodeCanvas
+                        id="booking-qr"
+                        value={booking.bookingReference}
+                        size={220}
+                        level="H"
+                        includeMargin={true}
+                    />
+
+                    <p
+                        style={{
+                            marginTop: "12px",
+                            fontSize: "14px",
+                            fontWeight: "600"
+                        }}
+                    >
+                        {booking.bookingReference}
+                    </p>
+
+                    <button
+                        className="success-secondary-button"
+                        onClick={downloadQRCode}
+                        style={{
+                            marginTop: "10px"
+                        }}
+                    >
+                        Download QR Ticket
+                    </button>
+
                 </div>
 
                 <div className="success-details">
@@ -90,18 +153,14 @@ function BookingSuccess() {
 
                 <button
                     className="primary-button"
-                    onClick={() =>
-                        navigate("/bookings")
-                    }
+                    onClick={() => navigate("/bookings")}
                 >
                     View my bookings
                 </button>
 
                 <button
                     className="success-secondary-button"
-                    onClick={() =>
-                        navigate("/events")
-                    }
+                    onClick={() => navigate("/events")}
                 >
                     Browse more events
                 </button>
