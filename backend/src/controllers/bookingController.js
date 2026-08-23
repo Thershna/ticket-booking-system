@@ -627,7 +627,7 @@ try {
         price: Number(seat.price)
     }));
 
-    await sendBookingConfirmationEmail({
+    sendBookingConfirmationEmail({
         email: user.email,
         name: user.name,
         bookingReference: booking.booking_reference,
@@ -637,16 +637,12 @@ try {
         venueLocation: eventInfo.venue_location,
         seats: emailSeats,
         totalAmount: booking.total_amount
-    });
-
-} catch (emailError) {
-    // Booking is already successful.
-    // Do not cancel the booking if email delivery fails.
+    }).catch((emailError) => {
     console.error(
         "Booking confirmation email failed:",
         emailError
     );
-}
+});
 
 return res.status(201).json({
             success: true,
