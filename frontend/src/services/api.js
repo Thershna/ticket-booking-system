@@ -1,6 +1,5 @@
 const API_BASE_URL =
-    import.meta.env.VITE_API_URL ||
-    `http://${window.location.hostname}:5000/api`;
+    import.meta.env.VITE_API_URL;
 
 const sleep = (ms) =>
     new Promise((resolve) => setTimeout(resolve, ms));
