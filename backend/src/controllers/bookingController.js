@@ -4,6 +4,10 @@ const {
     createWaitlistOffer
 } = require("../services/waitlistService");
 
+const {
+    sendBookingConfirmationEmail
+} = require("../services/emailService");
+
 const HOLD_DURATION_MINUTES = 10;
 const MAX_SEATS_PER_HOLD = 6;
 
@@ -591,7 +595,60 @@ const confirmBooking = async (req, res) => {
 
         await client.query("COMMIT");
 
-        return res.status(201).json({
+// Send booking confirmation email with QR ticket
+try {
+    const userResult = await pool.query(
+        `SELECT name, email
+         FROM users
+         WHERE id = $1`,
+        [req.user.id]
+    );
+
+    const user = userResult.rows[0];
+
+    const eventResult = await pool.query(
+        `SELECT
+            e.title,
+            e.start_time,
+            v.name AS venue_name,
+            v.location AS venue_location
+         FROM events e
+         JOIN venues v
+           ON v.id = e.venue_id
+         WHERE e.id = $1`,
+        [eventId]
+    );
+
+    const eventInfo = eventResult.rows[0];
+
+    const emailSeats = seatResult.rows.map(seat => ({
+        seat: `${seat.row_label}${seat.seat_number}`,
+        category: seat.category || "STANDARD",
+        price: Number(seat.price)
+    }));
+
+    await sendBookingConfirmationEmail({
+        email: user.email,
+        name: user.name,
+        bookingReference: booking.booking_reference,
+        eventTitle: eventInfo.title,
+        startTime: eventInfo.start_time,
+        venueName: eventInfo.venue_name,
+        venueLocation: eventInfo.venue_location,
+        seats: emailSeats,
+        totalAmount: booking.total_amount
+    });
+
+} catch (emailError) {
+    // Booking is already successful.
+    // Do not cancel the booking if email delivery fails.
+    console.error(
+        "Booking confirmation email failed:",
+        emailError
+    );
+}
+
+return res.status(201).json({
             success: true,
             message: "Booking confirmed successfully.",
             data: {
