@@ -2,8 +2,7 @@ const express = require("express");
 
 const {
     register,
-    login,
-    verifyEmail
+    login
 } = require("../controllers/authController");
 
 const {
@@ -16,10 +15,7 @@ router.post("/register", register);
 
 router.post("/login", login);
 
-router.get(
-    "/verify-email/:token",
-    verifyEmail
-);
+
 
 router.get("/me", authenticate, (req, res) => {
     res.json({

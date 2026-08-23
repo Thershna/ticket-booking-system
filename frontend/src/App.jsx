@@ -7,7 +7,7 @@ import {
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import VerifyEmail from "./pages/VerifyEmail";
+
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import SeatSelection from "./pages/SeatSelection";
@@ -44,10 +44,7 @@ function App() {
                     element={<Register />}
                 />
 
-                 <Route
-                    path="/verify-email/:token"
-                    element={<VerifyEmail />}
-                />
+                 
 
                 <Route
                     path="/events"

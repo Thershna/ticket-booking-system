@@ -125,49 +125,43 @@ function Register() {
             {/* SUCCESS POPUP */}
 
             {showSuccess && (
-                <div className="modal-overlay">
+    <div className="modal-overlay">
 
-                    <div className="register-success-modal">
+        <div className="register-success-modal">
 
-                        <div className="register-success-icon">
-                            ✓
-                        </div>
+            <div className="register-success-icon">
+                ✓
+            </div>
 
-                        <p className="eyebrow">
-                            ACCOUNT CREATED
-                        </p>
+            <p className="eyebrow">
+                ACCOUNT CREATED
+            </p>
 
-                        <h2>
-                            Check your email
-                        </h2>
+            <h2>
+                You're all set!
+            </h2>
 
-                        <p className="register-success-text">
-                            A verification email has been
-                            sent to:
-                        </p>
+            <p className="register-success-text">
+                Your account has been created successfully.
+            </p>
 
-                        <strong className="register-email">
-                            {email}
-                        </strong>
+            <p className="register-success-note">
+                You can now log in and start booking tickets.
+            </p>
 
-                        <p className="register-success-note">
-                            Please verify your email address
-                            before logging in.
-                        </p>
+            <button
+                className="primary-button"
+                onClick={() =>
+                    navigate("/login")
+                }
+            >
+                Go to Login →
+            </button>
 
-                        <button
-                            className="primary-button"
-                            onClick={() =>
-                                navigate("/login")
-                            }
-                        >
-                            OK
-                        </button>
+        </div>
 
-                    </div>
-
-                </div>
-            )}
+    </div>
+)}
 
         </main>
     );

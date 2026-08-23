@@ -1,10 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
+
 const pool = require("../config/database");
-const {
-    sendVerificationEmail
-} = require("../services/emailService");
+
 
 const register = async (req, res) => {
     try {
@@ -64,32 +62,20 @@ const register = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, 12);
 
         // New registrations are always customers
-        const verificationToken =
-    crypto.randomBytes(32).toString("hex");
-
-const verificationExpiresAt =
-    new Date(
-        Date.now() + 24 * 60 * 60 * 1000
-    );
+       
 
 const result = await pool.query(
     `INSERT INTO users (
         name,
         email,
         password_hash,
-        role,
-        email_verified,
-        verification_token,
-        verification_expires_at
+        role
      )
      VALUES (
         $1,
         $2,
         $3,
-        'CUSTOMER',
-        FALSE,
-        $4,
-        $5
+        'CUSTOMER'
      )
      RETURNING
         id,
@@ -100,29 +86,24 @@ const result = await pool.query(
     [
         trimmedName,
         normalizedEmail,
-        passwordHash,
-        verificationToken,
-        verificationExpiresAt
+        passwordHash
     ]
 );
 
-        const user = result.rows[0];
-        await sendVerificationEmail(
-    user.email,
-    user.name,
-    verificationToken
-);
+const user = result.rows[0];
 
-        
-
-        return res.status(201).json({
+return res.status(201).json({
     success: true,
-    message:
-        "Account created successfully. Please check your email to verify your account.",
+    message: "Account created successfully. You can now log in.",
     data: {
         user
     }
 });
+
+
+
+        
+
 
     } catch (error) {
         console.error("Registration error:", error);
@@ -155,8 +136,7 @@ const login = async (req, res) => {
         name,
         email,
         password_hash,
-        role,
-        email_verified
+        role       
      FROM users
      WHERE LOWER(email) = $1`,
     [normalizedEmail]
@@ -184,14 +164,7 @@ const login = async (req, res) => {
                 message: "Invalid email or password."
             });
         }
-        if (!user.email_verified) {
-    return res.status(403).json({
-        success: false,
-        code: "EMAIL_NOT_VERIFIED",
-        message:
-            "Please verify your email address before logging in."
-    });
-}
+        
 
 
         const token = jwt.sign(
@@ -230,92 +203,8 @@ const login = async (req, res) => {
     }
 };
 
-const verifyEmail = async (req, res) => {
-    try {
-        const { token } = req.params;
-
-        if (!token) {
-            return res.status(400).json({
-                success: false,
-                code: "INVALID_VERIFICATION_TOKEN",
-                message: "Verification token is required."
-            });
-        }
-
-        const result = await pool.query(
-            `SELECT
-                id,
-                email_verified,
-                verification_expires_at
-             FROM users
-             WHERE verification_token = $1`,
-            [token]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(400).json({
-                success: false,
-                code: "INVALID_VERIFICATION_TOKEN",
-                message: "This verification link is invalid."
-            });
-        }
-
-        const user = result.rows[0];
-
-        if (user.email_verified) {
-            return res.status(200).json({
-                success: true,
-                message: "Email is already verified."
-            });
-        }
-
-        if (
-            !user.verification_expires_at ||
-            new Date() >=
-                new Date(user.verification_expires_at)
-        ) {
-            return res.status(400).json({
-                success: false,
-                code: "VERIFICATION_TOKEN_EXPIRED",
-                message:
-                    "This verification link has expired."
-            });
-        }
-
-        await pool.query(
-            `UPDATE users
-             SET
-                email_verified = TRUE,
-                verification_token = NULL,
-                verification_expires_at = NULL,
-                updated_at = NOW()
-             WHERE id = $1`,
-            [user.id]
-        );
-
-        return res.status(200).json({
-            success: true,
-            message:
-                "Email verified successfully. You can now log in."
-        });
-
-    } catch (error) {
-        console.error(
-            "Email verification error:",
-            error
-        );
-
-        return res.status(500).json({
-            success: false,
-            code: "EMAIL_VERIFICATION_FAILED",
-            message:
-                "Unable to verify your email right now."
-        });
-    }
-};
 
 module.exports = {
     register,
-    login,
-    verifyEmail
+    login
 };
