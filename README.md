@@ -35,6 +35,9 @@ https://ticket-booking-system-dwny.onrender.com/api/health
 - Cancel bookings
 - Join event waitlists
 - Accept waitlist offers
+- QR code generated for confirmed tickets
+- Email notifications for booking confirmation
+- Email notifications for booking cancellation
 
 ### 👨‍💼 Organiser Features
 
@@ -109,6 +112,38 @@ The application uses JWT-based authentication.
 ## 🎫 Booking System
 
 The booking system prevents multiple users from booking the same seat.
+
+## 📱 QR Ticket & Email Notifications
+
+### QR-Based Ticket
+
+After a successful booking, the system generates a unique QR code for the confirmed ticket.
+
+The QR code can be used to identify and validate the booking during event entry.
+
+### Email Notifications
+
+Customers receive email notifications for important booking events, including:
+
+- Booking confirmation
+- Booking cancellation
+
+The email contains the relevant booking information and ticket details.
+
+### Ticket Flow
+
+```text
+Seat Selection
+      ↓
+Hold Seats
+      ↓
+Confirm Booking
+      ↓
+Booking Created
+      ↓
+QR Code Generated
+      ↓
+Confirmation Email Sent
 
 ### Seat Lifecycle
 
@@ -710,10 +745,8 @@ The core ticket booking system has been implemented and deployed.
 Possible future improvements include:
 
 - Online payment gateway integration
-- Automated email notifications
 - Advanced event search and filtering
 - Discount and coupon management
-- QR-based ticket validation
 - Enhanced analytics
 - Multiple organiser accounts
 - Admin management dashboard
