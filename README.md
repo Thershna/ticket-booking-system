@@ -1,34 +1,68 @@
 # 🎟️ Ticket Booking System
 
-A full-stack web-based ticket booking platform that allows customers to browse events, select seats, book tickets, manage bookings, and join waitlists. Organisers can create events, manage venues and seats, configure ticket prices, open events for booking, and monitor bookings and revenue.
+A full-stack web-based ticket booking platform that allows customers to browse events, search and filter events, select seats, temporarily hold seats, book tickets, manage bookings, receive QR-based tickets, and join waitlists.
+
+Organisers can create events, manage venues and seats, configure ticket prices, open events for booking, and monitor bookings, seats, and revenue.
 
 ---
 
 ## 🌐 Live Application
 
 ### Frontend
+
 https://ticket-booking-frontend-th00.onrender.com
 
+### 🔑 Organiser Evaluation Access
+
+The organiser module is available for evaluation using the credentials below.(It will be removed after evaluation)
+
+**Organiser Login Email:**  
+thershnatk@gmail.com
+
+**Organiser Password:**  
+12345678
+
+After logging in, the evaluator can access:
+
+- Organiser Dashboard
+- Create Event
+- Select Venue
+- Manage Seats
+- Generate Event Seats
+- Set Ticket Prices
+- Open Events for Booking
+- Monitor Bookings
+- Monitor Revenue
+
+> **Note:** These credentials are provided specifically for evaluating the organiser-side functionality of the application.
+
 ### Backend API
+
 https://ticket-booking-system-dwny.onrender.com
 
 ### API Health Check
+
 https://ticket-booking-system-dwny.onrender.com/api/health
 
 ---
 
-## ✨ Features
+# ✨ Features
 
-### 👤 Customer Features
+## 👤 Customer Features
 
 - User registration
 - User login
 - JWT-based authentication
 - Browse upcoming events
+- Search events by name
+- Filter events by date
+- Filter events by category/event type
+- Clear event filters
 - View event details
 - View available seats
 - Visual seat selection
 - Temporary seat holding
+- Seat hold expiry handling
 - Confirm ticket bookings
 - View booking history
 - View booking details
@@ -36,10 +70,14 @@ https://ticket-booking-system-dwny.onrender.com/api/health
 - Join event waitlists
 - Accept waitlist offers
 - QR code generated for confirmed tickets
-- Email notifications for booking confirmation
-- Email notifications for booking cancellation
+- QR ticket displayed on the booking confirmation page
+- Download QR ticket as an image
+- Booking confirmation email
+- Booking confirmation email includes ticket details and QR code
 
-### 👨‍💼 Organiser Features
+---
+
+## 👨‍💼 Organiser Features
 
 - Organiser login
 - Organiser dashboard
@@ -53,20 +91,22 @@ https://ticket-booking-system-dwny.onrender.com/api/health
 - Monitor booked seats
 - View total bookings
 - Track event revenue
+- Manage seats for individual events
 
 ---
 
-## 🛠️ Technology Stack
+# 🛠️ Technology Stack
 
-### Frontend
+## Frontend
 
 - React
 - Vite
 - React Router
 - JavaScript
 - CSS
+- `qrcode.react`
 
-### Backend
+## Backend
 
 - Node.js
 - Express.js
@@ -74,78 +114,68 @@ https://ticket-booking-system-dwny.onrender.com/api/health
 - `pg`
 - JWT
 - bcrypt
+- `qrcode`
+- Brevo Transactional Email API
 
-### Database
+## Database
 
 - PostgreSQL
 
-### Deployment
+## Deployment
 
 - Render
 
-### Version Control
+## Version Control
 
 - Git
 - GitHub
 
 ---
 
-## 🔐 Authentication
+# 🔐 Authentication
 
 The application uses JWT-based authentication.
 
-### Security
+## Security
 
 - Passwords are hashed using bcrypt before storage.
 - JWT tokens are used for authenticated API requests.
 - Protected routes require authentication.
 - Customer and organiser functionality is separated using user roles.
+- Sensitive environment variables are not committed to the repository.
 
-### User Roles
+## User Roles
 
 - `CUSTOMER`
 - `ORGANISER`
-- `ADMIN`
 
 ---
 
-## 🎫 Booking System
+# 🎫 Booking System
 
-The booking system prevents multiple users from booking the same seat.
+The booking system is designed to prevent multiple users from booking the same seat.
 
-## 📱 QR Ticket & Email Notifications
-
-### QR-Based Ticket
-
-After a successful booking, the system generates a unique QR code for the confirmed ticket.
-
-The QR code can be used to identify and validate the booking during event entry.
-
-### Email Notifications
-
-Customers receive email notifications for important booking events, including:
-
-- Booking confirmation
-- Booking cancellation
-
-The email contains the relevant booking information and ticket details.
-
-### Ticket Flow
+## Booking Flow
 
 ```text
-Seat Selection
-      ↓
+Select Seats
+     ↓
 Hold Seats
-      ↓
+     ↓
 Confirm Booking
-      ↓
+     ↓
 Booking Created
-      ↓
-QR Code Generated
-      ↓
-Confirmation Email Sent
+     ↓
+Seats Marked BOOKED
+     ↓
+QR Ticket Generated
+     ↓
+Booking Confirmation Page
+     ↓
+Confirmation Email
+```
 
-### Seat Lifecycle
+## Seat Lifecycle
 
 ```text
 AVAILABLE
@@ -155,17 +185,101 @@ AVAILABLE
   BOOKED
 ```
 
-Seats can be temporarily held before the booking is confirmed.
+Seats can be temporarily held before confirmation.
 
-After successful confirmation, the selected seats become `BOOKED` and are no longer available to other customers.
+Expired holds are automatically treated as available again.
+
+After successful confirmation, selected seats become `BOOKED` and cannot be booked by another customer.
 
 ---
 
-## ⏳ Waitlist Management
+# 📱 QR Ticket
+
+After a successful booking, a QR code is generated using the unique booking reference.
+
+The QR ticket is:
+
+- Displayed immediately on the Booking Confirmation page
+- Downloadable as a PNG image
+- Included in the booking confirmation email
+
+The booking confirmation page displays:
+
+- Booking reference
+- Event
+- Seats
+- Total amount
+- QR ticket
+- Download QR Ticket option
+
+Example flow:
+
+```text
+Booking Confirmed
+       ↓
+Booking Reference
+       ↓
+QR Code Generated
+       ↓
+QR Displayed
+       ↓
+Download QR Ticket
+```
+
+---
+
+# 📧 Booking Confirmation Email
+
+The system sends a booking confirmation email using the **Brevo Transactional Email API**.
+
+The email contains:
+
+- Customer name
+- Event name
+- Booking reference
+- Date and time
+- Venue
+- Venue location
+- Selected seats
+- Total amount
+- QR ticket
+
+The email integration uses an HTTP API rather than SMTP, allowing it to work with the deployed Render backend.
+
+Sensitive Brevo credentials are stored as environment variables and are not committed to GitHub.
+
+---
+
+# 🔎 Event Search & Filtering
+
+Customers can easily find events using the filtering interface.
+
+Supported filters:
+
+- Search by event name
+- Filter by date
+- Filter by event category/type
+- Clear all filters
+
+Example:
+
+```text
+Search: Rhythm
+Date: 25 Aug 2026
+Category: CONCERT
+        ↓
+Matching events displayed
+```
+
+Filtering is performed on the events retrieved from the backend.
+
+---
+
+# ⏳ Waitlist Management
 
 When an event has no available seats, customers can join the waitlist.
 
-### Waitlist Flow
+## Waitlist Flow
 
 ```text
 No Available Seats
@@ -183,9 +297,17 @@ Seat Becomes Available
       Booking
 ```
 
+The system supports:
+
+- Joining a waitlist
+- Tracking waitlist status
+- Creating waitlist offers
+- Accepting waitlist offers
+- Expiring waitlist offers
+
 ---
 
-## 🪑 Seat Management
+# 🪑 Seat Management
 
 The system supports venue-level physical seat configuration.
 
@@ -207,35 +329,35 @@ Example:
      C1  C2  C3  C4  C5
 ```
 
-### Seat Categories
+## Seat Categories
 
 - `STANDARD`
 - `PREMIUM`
 
-Event-specific prices can be configured for different seat categories.
+Event-specific ticket prices can be configured for different seat categories.
 
 ---
 
-## 🏢 Venues
+# 🏢 Venues
 
-The system supports multiple venues.
+The application supports multiple venues.
 
 Example venues configured in the application:
 
-| Venue                      | Location                |
-| --------------------------- | ------------------------ |
-| Chennai Music Arena        | Sholinganallur, Chennai |
-| CineVerse Theatre          | OMR, Chennai            |
-| OMR Convention Centre      | Navalur, Chennai        |
-| Laugh Lounge               | Velachery, Chennai      |
-| Marina Event Hall          | Adyar, Chennai          |
-| Phoenix Performance Hall   | Velachery, Chennai      |
-| Chennai Grand Auditorium   | Guindy, Chennai         |
-| Bay View Convention Centre | ECR, Chennai            |
+| Venue | Location |
+|---|---|
+| Chennai Music Arena | Sholinganallur, Chennai |
+| CineVerse Theatre | OMR, Chennai |
+| OMR Convention Centre | Navalur, Chennai |
+| Laugh Lounge | Velachery, Chennai |
+| Marina Event Hall | Adyar, Chennai |
+| Phoenix Performance Hall | Velachery, Chennai |
+| Chennai Grand Auditorium | Guindy, Chennai |
+| Bay View Convention Centre | ECR, Chennai |
 
 ---
 
-## 📅 Event Management
+# 📅 Event Management
 
 Organisers can create events with:
 
@@ -247,13 +369,13 @@ Organisers can create events with:
 - End date and time
 - Ticket prices
 
-### Supported Event Types
+## Supported Event Types
 
 - `MOVIE`
 - `CONCERT`
 - `OTHER`
 
-### Event Status
+## Event Status
 
 ```text
 DRAFT
@@ -269,7 +391,7 @@ Events can also be marked as `CANCELLED`.
 
 ---
 
-## 👨‍💼 Organiser Dashboard
+# 👨‍💼 Organiser Dashboard
 
 The organiser dashboard provides an overview of event performance.
 
@@ -289,7 +411,7 @@ Organisers can also access seat management for individual events.
 
 ---
 
-## 🔄 Customer Booking Workflow
+# 🔄 Customer Booking Workflow
 
 ```text
 Customer Registration
@@ -297,6 +419,8 @@ Customer Registration
 Customer Login
         ↓
 Browse Events
+        ↓
+Search / Filter Events
         ↓
 Select Event
         ↓
@@ -312,6 +436,10 @@ Confirm Booking
         ↓
 Booking Successful
         ↓
+QR Ticket Generated
+        ↓
+Confirmation Email Sent
+        ↓
 View My Bookings
         ↓
 View Booking Details
@@ -321,7 +449,7 @@ Cancel Booking
 
 ---
 
-## 🔄 Organiser Workflow
+# 🔄 Organiser Workflow
 
 ```text
 Organiser Login
@@ -349,7 +477,7 @@ Monitor Revenue
 
 ---
 
-## 🗄️ Database
+# 🗄️ Database
 
 The application uses PostgreSQL as its relational database.
 
@@ -359,21 +487,21 @@ The database schema is located at:
 database/schema.sql
 ```
 
-### Main Tables
+## Main Tables
 
-| Table              | Purpose                                 |
-| ------------------- | ----------------------------------------- |
-| `users`            | Stores customer and organiser accounts  |
-| `venues`           | Stores venue information                |
-| `seats`            | Stores physical venue seats             |
-| `events`           | Stores event information                |
-| `event_seats`      | Associates seats with individual events |
-| `bookings`         | Stores booking information              |
-| `booking_seats`    | Stores seats included in bookings       |
-| `waitlists`        | Stores customer waitlist entries        |
-| `waitlist_offers`  | Stores waitlist seat offers             |
+| Table | Purpose |
+|---|---|
+| `users` | Stores customer and organiser accounts |
+| `venues` | Stores venue information |
+| `seats` | Stores physical venue seats |
+| `events` | Stores event information |
+| `event_seats` | Associates seats with individual events |
+| `bookings` | Stores booking information |
+| `booking_seats` | Stores seats included in bookings |
+| `waitlists` | Stores customer waitlist entries |
+| `waitlist_offers` | Stores waitlist seat offers |
 
-### Database Features
+## Database Features
 
 - Primary keys
 - Foreign keys
@@ -387,7 +515,7 @@ database/schema.sql
 
 ---
 
-## 🧩 Database Relationship Overview
+# 🧩 Database Relationship Overview
 
 ```text
 Users
@@ -411,7 +539,7 @@ Waitlist information is associated with users, events, and event seats.
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```text
 ticket-booking-system/
@@ -459,28 +587,28 @@ ticket-booking-system/
 
 ---
 
-## 🔌 API
+# 🔌 API
 
 The frontend communicates with the backend through REST API endpoints.
 
-### Production Backend
+## Production Backend
 
 https://ticket-booking-system-dwny.onrender.com
 
-### Authentication
+## Authentication
 
 ```text
 POST /api/auth/register
 POST /api/auth/login
 ```
 
-### Health Check
+## Health Check
 
 ```text
 GET /api/health
 ```
 
-### Events
+## Events
 
 ```text
 GET /api/events
@@ -488,7 +616,7 @@ GET /api/events/:id
 GET /api/events/:id/seats
 ```
 
-### Event Management
+## Event Management
 
 ```text
 POST /api/events
@@ -496,7 +624,7 @@ PATCH /api/events/:id/open
 POST /api/events/:eventId/seats
 ```
 
-### Booking
+## Booking
 
 ```text
 POST /api/events/:eventId/hold
@@ -506,7 +634,7 @@ GET /api/:bookingId
 PATCH /api/:bookingId/cancel
 ```
 
-### Waitlist
+## Waitlist
 
 ```text
 POST /api/events/:eventId/waitlist
@@ -516,11 +644,11 @@ POST /api/waitlist/offers/:offerId/accept
 
 ---
 
-## 🚀 Running Locally
+# 🚀 Running Locally
 
-### Prerequisites
+## Prerequisites
 
-Install the following:
+Install:
 
 - Node.js
 - npm
@@ -529,7 +657,7 @@ Install the following:
 
 ---
 
-### 1. Clone the Repository
+## 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Thershna/ticket-booking-system.git
@@ -538,7 +666,7 @@ cd ticket-booking-system
 
 ---
 
-### 2. Backend Setup
+## 2. Backend Setup
 
 ```bash
 cd backend
@@ -552,11 +680,11 @@ The backend runs on:
 http://localhost:5000
 ```
 
-Backend environment variables must be configured locally before starting the server.
+Configure the required backend environment variables in a local `.env` file.
 
 ---
 
-### 3. Database Setup
+## 3. Database Setup
 
 Create a PostgreSQL database.
 
@@ -570,7 +698,7 @@ This creates the required tables, ENUM types, constraints, indexes, and relation
 
 ---
 
-### 4. Frontend Setup
+## 4. Frontend Setup
 
 Open another terminal:
 
@@ -584,23 +712,27 @@ The frontend runs using the Vite development server.
 
 ---
 
-## 🌍 Deployment
+# 🌍 Deployment
 
 The application is deployed using Render.
 
-### Frontend
+## Frontend
 
 React/Vite frontend deployed as a Render Static Site.
 
-### Backend
+## Backend
 
 Node.js/Express backend deployed as a Render Web Service.
 
-### Database
+## Database
 
 PostgreSQL database hosted on Render.
 
-### Production Architecture
+## Email
+
+Brevo Transactional Email API is used for booking confirmation emails.
+
+## Production Architecture
 
 ```text
                  ┌─────────────────────┐
@@ -621,25 +753,34 @@ PostgreSQL database hosted on Render.
                  │       Render        │
                  └──────────┬──────────┘
                             │
-                            ↓
-                 ┌─────────────────────┐
-                 │     PostgreSQL      │
-                 │       Render        │
-                 └─────────────────────┘
+                  ┌─────────┴─────────┐
+                  ↓                   ↓
+        ┌─────────────────┐   ┌─────────────────┐
+        │   PostgreSQL    │   │     Brevo       │
+        │     Render      │   │ Transactional   │
+        └─────────────────┘   │   Email API     │
+                              └─────────────────┘
 ```
 
 ---
 
-## 🔒 Environment Variables
+# 🔒 Environment Variables
 
 Sensitive configuration values are stored using environment variables and are not committed to the GitHub repository.
 
-Typical configuration includes:
+Typical backend configuration includes:
 
 ```text
 DATABASE_URL
 JWT_SECRET
 JWT_EXPIRES_IN
+BREVO_API_KEY
+BREVO_SENDER_EMAIL
+```
+
+Frontend configuration:
+
+```text
 VITE_API_URL
 ```
 
@@ -647,24 +788,29 @@ Actual secret values are intentionally excluded from this repository.
 
 ---
 
-## 🧪 Testing
+# 🧪 Testing
 
-### Customer Testing
+## Customer Testing
 
 1. Register a customer account.
 2. Login.
 3. Browse available events.
-4. Open an event.
-5. View event details.
-6. Select available seats.
-7. Hold the selected seats.
-8. Confirm the booking.
-9. Open My Bookings.
-10. View booking details.
-11. Cancel a booking if required.
-12. Test the waitlist when seats are unavailable.
+4. Search or filter events.
+5. Open an event.
+6. View event details.
+7. Select available seats.
+8. Hold the selected seats.
+9. Confirm the booking.
+10. Verify the booking confirmation page.
+11. Verify the QR ticket.
+12. Download the QR ticket.
+13. Check the booking confirmation email.
+14. Open My Bookings.
+15. View booking details.
+16. Cancel a booking if required.
+17. Test the waitlist when seats are unavailable.
 
-### Organiser Testing
+## Organiser Testing
 
 1. Login using the organiser account.
 2. Open the organiser dashboard.
@@ -680,7 +826,41 @@ Actual secret values are intentionally excluded from this repository.
 
 ---
 
-## 🔎 API Health Check
+# 👨‍💼 Evaluator / Organiser Access
+
+The application currently has a configured organiser account for evaluation.
+
+### Organiser Login
+
+Use the organiser credentials provided separately with the assignment submission.
+
+> The password is intentionally not stored in this public README.
+
+After logging in, the evaluator can access:
+
+```text
+Organiser Dashboard
+       ↓
+Create Event
+       ↓
+Select Venue
+       ↓
+Manage Seats
+       ↓
+Generate Event Seats
+       ↓
+Set Ticket Prices
+       ↓
+Open Event
+       ↓
+Monitor Bookings
+       ↓
+Monitor Revenue
+```
+
+---
+
+# 🔎 API Health Check
 
 The backend provides a health-check endpoint:
 
@@ -692,11 +872,11 @@ Production:
 
 https://ticket-booking-system-dwny.onrender.com/api/health
 
-A successful response confirms that the deployed backend API is running and connected to the database.
+A successful response confirms that the deployed backend API is running.
 
 ---
 
-## 🎯 Project Objectives
+# 🎯 Project Objectives
 
 The main objectives of this project are:
 
@@ -707,24 +887,31 @@ The main objectives of this project are:
 5. Implement temporary seat holding.
 6. Provide booking confirmation and cancellation.
 7. Implement waitlist functionality.
-8. Provide organisers with event and seat management.
-9. Provide booking and revenue statistics.
-10. Deploy the application using cloud infrastructure.
+8. Generate QR-based tickets.
+9. Send booking confirmation emails.
+10. Provide organisers with event and seat management.
+11. Provide booking and revenue statistics.
+12. Provide event search and filtering.
+13. Deploy the application using cloud infrastructure.
 
 ---
 
-## 📌 Project Status
+# 📌 Project Status
 
-The core ticket booking system has been implemented and deployed.
+The ticket booking system has been implemented and deployed.
 
-### Implemented Modules
+## Implemented Modules
 
 - Customer authentication
 - Organiser authentication
 - Event browsing
-- Event management
+- Event search
+- Event date filtering
+- Event category filtering
 - Venue management
+- Event management
 - Seat configuration
+- Seat generation
 - Seat selection
 - Seat holding
 - Ticket booking
@@ -735,26 +922,29 @@ The core ticket booking system has been implemented and deployed.
 - Organiser dashboard
 - Booking statistics
 - Revenue monitoring
+- QR ticket generation
+- QR ticket download
+- Booking confirmation email
 - PostgreSQL database integration
 - Cloud deployment
 
 ---
 
-## 🚀 Future Enhancements
+# 🚀 Future Enhancements
 
 Possible future improvements include:
 
 - Online payment gateway integration
-- Advanced event search and filtering
 - Discount and coupon management
-- Enhanced analytics
+- Advanced analytics
 - Multiple organiser accounts
-- Admin management dashboard
-- Advanced notification system
+- Dedicated admin management dashboard
+- Advanced notification preferences
+- QR scanning/entry validation system
 
 ---
 
-## 👩‍💻 Author
+# 👩‍💻 Author
 
 **Thershna**
 
@@ -770,22 +960,26 @@ https://github.com/Thershna/ticket-booking-system
 
 ---
 
-## 📜 License
+# 📜 License
 
 This project was developed as an academic/project implementation demonstrating a full-stack ticket booking system.
 
 ---
 
-## 🔗 Project Links
+# 🔗 Project Links
 
-**GitHub Repository:**
+### GitHub Repository
+
 https://github.com/Thershna/ticket-booking-system
 
-**Live Frontend:**
+### Live Frontend
+
 https://ticket-booking-frontend-th00.onrender.com
 
-**Backend API:**
+### Backend API
+
 https://ticket-booking-system-dwny.onrender.com
 
-**API Health Check:**
+### API Health Check
+
 https://ticket-booking-system-dwny.onrender.com/api/health
