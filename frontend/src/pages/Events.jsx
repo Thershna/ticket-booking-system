@@ -1,5 +1,6 @@
 import {
     useEffect,
+    useMemo,
     useState
 } from "react";
 
@@ -19,6 +20,11 @@ function Events() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // Filters
+    const [search, setSearch] = useState("");
+    const [selectedDate, setSelectedDate] = useState("");
+    const [selectedType, setSelectedType] = useState("ALL");
 
 
     useEffect(() => {
@@ -86,6 +92,85 @@ function Events() {
 
         navigate("/login");
     };
+
+
+    // Get unique event types
+    const eventTypes = useMemo(() => {
+
+        const types = events
+            .map(event => event.event_type)
+            .filter(Boolean);
+
+        return [...new Set(types)];
+
+    }, [events]);
+
+
+    // Apply filters
+    const filteredEvents = useMemo(() => {
+
+        return events.filter((event) => {
+
+            // Search by title
+            const matchesSearch =
+                event.title
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase().trim()
+                    );
+
+            // Compare date
+            const eventDate = new Date(
+                event.start_time
+            );
+
+            const eventDateString =
+                `${eventDate.getFullYear()}-${String(
+                    eventDate.getMonth() + 1
+                ).padStart(2, "0")}-${String(
+                    eventDate.getDate()
+                ).padStart(2, "0")}`;
+
+            const matchesDate =
+                !selectedDate ||
+                eventDateString === selectedDate;
+
+
+            // Event type
+            const matchesType =
+                selectedType === "ALL" ||
+                event.event_type === selectedType;
+
+
+            return (
+                matchesSearch &&
+                matchesDate &&
+                matchesType
+            );
+
+        });
+
+    }, [
+        events,
+        search,
+        selectedDate,
+        selectedType
+    ]);
+
+
+    const clearFilters = () => {
+
+        setSearch("");
+        setSelectedDate("");
+        setSelectedType("ALL");
+
+    };
+
+
+    const hasActiveFilters =
+        search ||
+        selectedDate ||
+        selectedType !== "ALL";
 
 
     return (
@@ -187,10 +272,210 @@ function Events() {
 
 
                     <span className="event-count">
-                        {events.length} events
+                        {filteredEvents.length}{" "}
+                        {filteredEvents.length === 1
+                            ? "event"
+                            : "events"}
                     </span>
 
                 </div>
+
+
+                {/* FILTERS */}
+
+                {!loading && events.length > 0 && (
+
+                    <div
+                        className="event-filters"
+                        style={{
+                            marginBottom: "35px",
+                            padding: "20px",
+                            border: "1px solid #e5e1dc",
+                            borderRadius: "14px",
+                            background: "#fff"
+                        }}
+                    >
+
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                    "2fr 1fr 1fr auto",
+                                gap: "14px",
+                                alignItems: "end"
+                            }}
+                        >
+
+                            {/* SEARCH */}
+
+                            <div>
+
+                                <label
+                                    style={{
+                                        display: "block",
+                                        fontSize: "11px",
+                                        letterSpacing: "1.5px",
+                                        marginBottom: "8px",
+                                        color: "#6d8178",
+                                        fontWeight: "600"
+                                    }}
+                                >
+                                    SEARCH EVENTS
+                                </label>
+
+                                <input
+                                    type="text"
+                                    placeholder="Search by event name..."
+                                    value={search}
+                                    onChange={(e) =>
+                                        setSearch(
+                                            e.target.value
+                                        )
+                                    }
+                                    style={{
+                                        width: "100%",
+                                        boxSizing: "border-box",
+                                        padding: "12px 14px",
+                                        border: "1px solid #ddd",
+                                        borderRadius: "9px",
+                                        fontSize: "14px",
+                                        outline: "none"
+                                    }}
+                                />
+
+                            </div>
+
+
+                            {/* DATE */}
+
+                            <div>
+
+                                <label
+                                    style={{
+                                        display: "block",
+                                        fontSize: "11px",
+                                        letterSpacing: "1.5px",
+                                        marginBottom: "8px",
+                                        color: "#6d8178",
+                                        fontWeight: "600"
+                                    }}
+                                >
+                                    DATE
+                                </label>
+
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) =>
+                                        setSelectedDate(
+                                            e.target.value
+                                        )
+                                    }
+                                    style={{
+                                        width: "100%",
+                                        boxSizing: "border-box",
+                                        padding: "12px 14px",
+                                        border: "1px solid #ddd",
+                                        borderRadius: "9px",
+                                        fontSize: "14px",
+                                        outline: "none"
+                                    }}
+                                />
+
+                            </div>
+
+
+                            {/* TYPE */}
+
+                            <div>
+
+                                <label
+                                    style={{
+                                        display: "block",
+                                        fontSize: "11px",
+                                        letterSpacing: "1.5px",
+                                        marginBottom: "8px",
+                                        color: "#6d8178",
+                                        fontWeight: "600"
+                                    }}
+                                >
+                                    CATEGORY
+                                </label>
+
+                                <select
+                                    value={selectedType}
+                                    onChange={(e) =>
+                                        setSelectedType(
+                                            e.target.value
+                                        )
+                                    }
+                                    style={{
+                                        width: "100%",
+                                        boxSizing: "border-box",
+                                        padding: "12px 14px",
+                                        border: "1px solid #ddd",
+                                        borderRadius: "9px",
+                                        fontSize: "14px",
+                                        background: "white",
+                                        outline: "none"
+                                    }}
+                                >
+
+                                    <option value="ALL">
+                                        All categories
+                                    </option>
+
+                                    {eventTypes.map(
+                                        (type) => (
+                                            <option
+                                                key={type}
+                                                value={type}
+                                            >
+                                                {type}
+                                            </option>
+                                        )
+                                    )}
+
+                                </select>
+
+                            </div>
+
+
+                            {/* CLEAR */}
+
+                            <button
+                                onClick={clearFilters}
+                                disabled={
+                                    !hasActiveFilters
+                                }
+                                style={{
+                                    padding: "12px 18px",
+                                    border: "1px solid #d8d8d8",
+                                    borderRadius: "9px",
+                                    background:
+                                        hasActiveFilters
+                                            ? "#5d806f"
+                                            : "#f3f3f3",
+                                    color:
+                                        hasActiveFilters
+                                            ? "white"
+                                            : "#999",
+                                    cursor:
+                                        hasActiveFilters
+                                            ? "pointer"
+                                            : "default",
+                                    fontWeight: "600",
+                                    whiteSpace: "nowrap"
+                                }}
+                            >
+                                Clear filters
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                )}
 
 
                 {loading && (
@@ -199,9 +484,6 @@ function Events() {
                     </div>
                 )}
 
-
-                {/* Only show error when we have
-                    no events to display */}
 
                 {!loading &&
                     error &&
@@ -243,11 +525,43 @@ function Events() {
                     )}
 
 
-                {events.length > 0 && (
+                {/* NO FILTER RESULTS */}
+
+                {!loading &&
+                    events.length > 0 &&
+                    filteredEvents.length === 0 && (
+
+                        <div className="empty-state">
+
+                            <h3>
+                                No matching events
+                            </h3>
+
+                            <p>
+                                Try changing your search
+                                or filters.
+                            </p>
+
+                            <button
+                                className="primary-button"
+                                onClick={clearFilters}
+                            >
+                                Clear filters
+                            </button>
+
+                        </div>
+
+                    )}
+
+
+                {/* FILTERED EVENTS */}
+
+                {!loading &&
+                    filteredEvents.length > 0 && (
 
                     <div className="events-grid">
 
-                        {events.map((event) => (
+                        {filteredEvents.map((event) => (
 
                             <article
                                 className="event-card"
@@ -288,6 +602,7 @@ function Events() {
                                     <h3>
                                         {event.title}
                                     </h3>
+
 
                                     <p>
                                         {event.description}
