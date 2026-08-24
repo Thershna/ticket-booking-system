@@ -1,15 +1,8 @@
-const nodemailer = require("nodemailer");
+const { BrevoClient } = require("@getbrevo/brevo");
 const QRCode = require("qrcode");
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
+const brevo = new BrevoClient({
+    apiKey: process.env.BREVO_API_KEY
 });
 
 const sendBookingConfirmationEmail = async ({
@@ -23,8 +16,9 @@ const sendBookingConfirmationEmail = async ({
     seats,
     totalAmount
 }) => {
+     console.log("📧 sendBookingConfirmationEmail called for:", email);
 
-    // QR code contains the booking reference
+    // Generate QR code from booking reference
     const qrCodeDataUrl = await QRCode.toDataURL(
         bookingReference,
         {
@@ -32,6 +26,8 @@ const sendBookingConfirmationEmail = async ({
             margin: 2
         }
     );
+
+    const base64Qr = qrCodeDataUrl.split("base64,")[1];
 
     const seatList = seats
         .map(seat => `${seat.seat} (${seat.category})`)
@@ -45,157 +41,188 @@ const sendBookingConfirmationEmail = async ({
         }
     );
 
-    await transporter.sendMail({
-        from: `"Ticket Booking" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: `Booking Confirmed - ${bookingReference}`,
+    try {
 
-        html: `
-            <div
-                style="
-                    font-family: Arial, sans-serif;
-                    max-width: 650px;
-                    margin: auto;
-                    color: #263238;
-                    line-height: 1.6;
-                "
-            >
+        const result =
+            await brevo.transactionalEmails.sendTransacEmail({
 
-                <div
-                    style="
-                        background:#5d806f;
-                        color:white;
-                        padding:20px;
-                        border-radius:10px 10px 0 0;
-                        text-align:center;
-                    "
-                >
-                    <h1 style="margin:0;">
-                        Ticket Booking
-                    </h1>
+                sender: {
+                    name: "Ticket Booking",
+                    email: process.env.BREVO_SENDER_EMAIL
+                },
 
-                    <p style="margin:5px 0 0;">
-                        Booking Confirmation
-                    </p>
-                </div>
+                to: [
+                    {
+                        email: email,
+                        name: name
+                    }
+                ],
 
-                <div
-                    style="
-                        padding:25px;
-                        border:1px solid #ddd;
-                        border-top:none;
-                    "
-                >
+                subject:
+                    `Booking Confirmed - ${bookingReference}`,
 
-                    <h2>
-                        Hello ${name},
-                    </h2>
+                htmlContent: `
+                    <div style="
+                        font-family: Arial, sans-serif;
+                        max-width: 650px;
+                        margin: auto;
+                        color: #263238;
+                        line-height: 1.6;
+                    ">
 
-                    <p>
-                        Your booking has been successfully confirmed.
-                    </p>
+                        <div style="
+                            background:#5d806f;
+                            color:white;
+                            padding:20px;
+                            border-radius:10px 10px 0 0;
+                            text-align:center;
+                        ">
 
-                    <div
-                        style="
-                            background:#f5f8f6;
-                            padding:18px;
-                            border-radius:8px;
-                            margin:20px 0;
-                        "
-                    >
+                            <h1 style="margin:0;">
+                                Ticket Booking
+                            </h1>
 
-                        <h2 style="margin-top:0;">
-                            ${eventTitle}
-                        </h2>
+                            <p style="margin:5px 0 0;">
+                                Booking Confirmation
+                            </p>
 
-                        <p>
-                            <strong>Booking Reference:</strong>
-                            ${bookingReference}
-                        </p>
+                        </div>
 
-                        <p>
-                            <strong>Date & Time:</strong>
-                            ${formattedDate}
-                        </p>
+                        <div style="
+                            padding:25px;
+                            border:1px solid #ddd;
+                            border-top:none;
+                        ">
 
-                        <p>
-                            <strong>Venue:</strong>
-                            ${venueName}
-                        </p>
+                            <h2>
+                                Hello ${name},
+                            </h2>
 
-                        <p>
-                            <strong>Location:</strong>
-                            ${venueLocation}
-                        </p>
+                            <p>
+                                Your booking has been successfully confirmed.
+                            </p>
 
-                        <p>
-                            <strong>Seats:</strong>
-                            ${seatList}
-                        </p>
+                            <div style="
+                                background:#f5f8f6;
+                                padding:18px;
+                                border-radius:8px;
+                                margin:20px 0;
+                            ">
 
-                        <p>
-                            <strong>Total Amount:</strong>
-                            ₹${Number(totalAmount).toFixed(2)}
-                        </p>
+                                <h2 style="margin-top:0;">
+                                    ${eventTitle}
+                                </h2>
+
+                                <p>
+                                    <strong>
+                                        Booking Reference:
+                                    </strong>
+                                    ${bookingReference}
+                                </p>
+
+                                <p>
+                                    <strong>
+                                        Date & Time:
+                                    </strong>
+                                    ${formattedDate}
+                                </p>
+
+                                <p>
+                                    <strong>
+                                        Venue:
+                                    </strong>
+                                    ${venueName}
+                                </p>
+
+                                <p>
+                                    <strong>
+                                        Location:
+                                    </strong>
+                                    ${venueLocation}
+                                </p>
+
+                                <p>
+                                    <strong>
+                                        Seats:
+                                    </strong>
+                                    ${seatList}
+                                </p>
+
+                                <p>
+                                    <strong>
+                                        Total Amount:
+                                    </strong>
+                                    ₹${Number(totalAmount).toFixed(2)}
+                                </p>
+
+                            </div>
+
+                            <div style="
+                                text-align:center;
+                                margin:30px 0;
+                            ">
+
+                                <h3>
+                                    Your QR Ticket
+                                </h3>
+
+                                <p>
+                                    Show this QR code at the venue.
+                                </p>
+
+                                <img
+                                    src="cid:ticket-qrcode"
+                                    alt="Booking QR Code"
+                                    width="250"
+                                    height="250"
+                                />
+
+                                <p>
+                                    <strong>
+                                        ${bookingReference}
+                                    </strong>
+                                </p>
+
+                            </div>
+
+                            <p>
+                                Please keep this email for your records.
+                            </p>
+
+                            <p>
+                                Thank you for using Ticket Booking!
+                            </p>
+
+                        </div>
 
                     </div>
+                `,
 
-                    <div style="text-align:center; margin:30px 0;">
+                attachment: [
+                    {
+                        name: `${bookingReference}.png`,
+                        content: base64Qr
+                    }
+                ]
+            });
 
-                        <h3>
-                            Your QR Ticket
-                        </h3>
+        console.log(
+            "Booking confirmation email sent:",
+            result
+        );
 
-                        <p>
-                            Show this QR code at the venue.
-                        </p>
+        return result;
 
-                        <img
-                            src="cid:ticket-qrcode"
-                            alt="Booking QR Code"
-                            width="250"
-                            height="250"
-                        />
+    } catch (error) {
 
-                        <p>
-                            <strong>
-                                ${bookingReference}
-                            </strong>
-                        </p>
+        console.error(
+            "Brevo booking email failed:",
+            error
+        );
 
-                    </div>
-
-                    <p>
-                        Please keep this email for your records.
-                    </p>
-
-                    <p>
-                        Thank you for using Ticket Booking!
-                    </p>
-
-                </div>
-
-            </div>
-        `,
-
-        attachments: [
-            {
-                filename: `${bookingReference}.png`,
-                content: qrCodeDataUrl.split("base64,")[1],
-                encoding: "base64",
-                cid: "ticket-qrcode"
-            }
-        ]
-    });
-};
-
-transporter.verify((error) => {
-    if (error) {
-        console.error("EMAIL CONFIG ERROR:", error);
-    } else {
-        console.log("EMAIL SERVER READY");
+        throw error;
     }
-});
+};
 
 module.exports = {
     sendBookingConfirmationEmail
